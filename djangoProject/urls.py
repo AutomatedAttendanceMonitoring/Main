@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from firstapp import views
+from autoAttendanceMonitoring import views
 
 urlpatterns = [
     path('', views.index, name='home'),
