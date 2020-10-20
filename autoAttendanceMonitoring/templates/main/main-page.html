@@ -1,11 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="stylesheet" href="../css/style.css">
-    <title>Auto Attendance Monitoring</title>
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Slab:ital@1&family=Roboto+Slab&display=swap" rel="stylesheet">
-</head>
+{% extends "main/wrapper.html" %}
+{% block content %}
 <body>
     <header>
         <h1>Auto Attendance Monitoring</h1>
@@ -19,5 +13,4 @@
         <input type="button" id="submit" value="Check attendance">
     </form>
     <hr>
-</body>
-</html>
+{% endblock %}
