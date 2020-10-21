@@ -1,6 +1,11 @@
 venv
 
 # ================================
+# project-specific
+*.sock
+.webserver/
+
+# ================================
 
 # Editors
 .vscode/
