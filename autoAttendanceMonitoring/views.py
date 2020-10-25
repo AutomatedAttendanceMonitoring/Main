@@ -4,3 +4,7 @@ from django.shortcuts import render
 
 def index(request):
     return render(request, 'main/main-page.html')
+
+
+def mark_read(request):
+    pass
