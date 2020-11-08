@@ -71,7 +71,7 @@ class Cursor:
             student_id (str): e-mail of student that should be marked as present
             
         Returns:
-        """ 
+        """
         self.cursor.execute('INSERT INTO is_present VALUES ({}, {})'.format(lesson_id, student_id))
         
     def clear_lessons(self):
@@ -121,5 +121,3 @@ class Cursor:
                                 year
                             )
                             )
-        
-    
