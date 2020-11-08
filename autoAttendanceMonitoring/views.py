@@ -11,6 +11,10 @@ def index(request):
     return render(request, 'main/main-page.html')
 
 
+def log_in(request):
+    return render(request, 'main/log-in.html')
+
+
 def manual_check(request):
     template = loader.get_template('main/manual-check.html')
     students = Student.objects.order_by('-email')
