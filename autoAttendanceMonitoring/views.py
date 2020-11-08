@@ -23,8 +23,13 @@ def manual_check(request):
     }
     if request.method == "POST":
         print(request.POST)
-        # a = Student(id=int(students[0].) + 1, name=request.POST['student-name'])
-        # a.save()
+        a = Student(
+            email=request.POST['student-email'],
+            FName=request.POST['student-name'],
+            LName=request.POST['student-lname'],
+            year_of_education_id=request.POST['student-year']
+        )
+        a.save()
         return HttpResponseRedirect("/manual-check")
     return HttpResponse(template.render(context, request))
 

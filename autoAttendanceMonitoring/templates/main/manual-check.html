@@ -22,13 +22,20 @@
             <a class="list-group-item list-group-item-action" >{{student.FName}} {{ student.LName }}</a>
             {% endfor %}
         </div>
+    <hr/>
         <form action="" method="POST">
             {% csrf_token %}
              <div class="container-fluid form-group">
-                <label for="student-name">Student name</label>
-                <input type="text" id="student-name"  name="student-name" placeholder="Harry Potter" class="form-control">
+                <label for="student-name">Student first name</label>
+                <input type="text" id="student-name"  name="student-name" placeholder="Harry" class="form-control">
+                <label for="student-lname">Student second name</label>
+                <input type="text" id="student-lname"  name="student-lname" placeholder="Potter" class="form-control">
+                <label for="student-email">Student e-mail</label>
+                <input type="text" id="student-email"  name="student-email" placeholder="h.potter@innopolis.university" class="form-control">
+                <label for="student-year">Student educational year</label>
+                <input type="text" id="student-year"  name="student-year" placeholder="1" class="form-control">
             </div>
-            <input type="submit" id="submit" value="Check attendance" class="btn btn-primary btn-lg">
+            <input type="submit" id="submit" value="Mark attendance" class="btn btn-primary btn-lg">
         </form>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
