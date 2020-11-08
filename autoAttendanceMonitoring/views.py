@@ -8,6 +8,8 @@ from utils.link_sender import send_link_to
 
 
 def index(request):
+    if request.method == "POST":
+        return HttpResponseRedirect("/send_links/aca9956a-4e37-400c-9a0b-b83290ffabca")
     return render(request, 'main/main-page.html')
 
 
