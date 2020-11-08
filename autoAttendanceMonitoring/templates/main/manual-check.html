@@ -19,7 +19,7 @@
         <h2>This is a list of students who marked their attendance, please write a new name to add:</h2>
         <div class="list-group" id="myList" role="tablist">
           {% for student in students %}
-            <a class="list-group-item list-group-item-action" >{{student.name}}</a>
+            <a class="list-group-item list-group-item-action" >{{student.FName}} {{ student.LName }}</a>
             {% endfor %}
         </div>
         <form action="" method="POST">

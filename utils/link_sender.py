@@ -14,6 +14,5 @@ def send_link_to(student: Student, lesson_id: str):
     # TODO: sending link to zoom pc
 
 
-def set_present(lesson: Lesson, student: Student):
-    IsPresent.objects.create(student=student, lesson=lesson)
+
 
