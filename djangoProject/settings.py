@@ -78,10 +78,10 @@ WSGI_APPLICATION = 'djangoProject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'fse_db',
-        'USER' : 'fseteam',
-        'PASSWORD' : '1q2w3e4r',
-        'HOST' : '127.0.0.1',
+        'NAME': 'AAT_DB',
+        'USER' : 'fse_team',
+        'PASSWORD' : 'qefasd4wsdf4rqq34fqq4432dfaFASdf',
+        'HOST' : 'database-2.caoemzoflqo5.us-east-2.rds.amazonaws.com',
         'PORT' : '5432',
     }
 }
