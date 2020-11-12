@@ -70,14 +70,4 @@ class Migration(migrations.Migration):
                 ('student', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='autoAttendanceMonitoring.student')),
             ],
         ),
-        migrations.CreateModel(
-            name='ZoomAuth',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('active_token', models.CharField(max_length=700)),
-                ('expires_at', models.DateTimeField(verbose_name='expiration time')),
-                ('client_id', models.CharField(max_length=25)),
-                ('client_secret', models.CharField(max_length=32)),
-            ],
-        ),
     ]
