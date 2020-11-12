@@ -9,5 +9,5 @@ urlpatterns = [
     path('', views.index, name="Main page"),
     path('zoom/send-messages', views.send_messages, name='zoom-send-messages'),
     path('zoom/set-credentials', views.set_credentials, name='zoom-set-credentials'),
-    # path('zoom/token-callback', views.token_callback, name='zoom-token-callback'),
+    path('zoom/token-callback', views.token_callback, name='zoom-token-callback'),
 ]

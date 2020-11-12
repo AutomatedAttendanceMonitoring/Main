@@ -49,8 +49,8 @@ def set_credentials(request):
     else:
         ZoomAuth.objects.first().update_credentials(client_id, client_secret)
         return redirect(f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&"
-                        f"redirect_uri=https://{request.get_host()}/zoom/token-callback&"
-                        f"state=https://{request.get_host()}/zoom/token-callback", permanent=True)
+                        f"redirect_uri=https://{request.get_host()}{reverse('zoom-token-callback')}&"
+                        f"state=https://{request.get_host()}{reverse('zoom-token-callback')}", permanent=True)
 
 
 def token_callback(request):
