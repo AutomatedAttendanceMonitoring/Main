@@ -21,11 +21,11 @@ def index(request):
 
 
 # region Zoom API
+# warning: needs to be protected
 def send_messages(request):
-    # warning: needs to be protected
     email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
-    zoom_token = ZoomAuth.objects.first().token
-    if zoom_token is None:
+    auth = ZoomAuth.objects.first()
+    if auth is None or auth.token is None:
         return HttpResponse(f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
                             "passing your client_id and client_secret values as query parameters.")
 
@@ -40,7 +40,7 @@ def send_messages(request):
     for email in users:
         print(requests.post(url, data=f'{"message": "{message}","to_contact":"{email}"}', headers={
             'content-type': "application/json",
-            'authorization': f"Bearer {zoom_token}"
+            'authorization': f"Bearer {auth.token}"
         }).json())
     return HttpResponse("ok")
 
