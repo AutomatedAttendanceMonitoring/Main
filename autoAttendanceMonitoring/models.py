@@ -57,17 +57,6 @@ class ZoomAuth(models.Model):
         self.save()
         return self.active_token is not None
 
-    def update_credentials(self, client_id: str, client_secret: str):
-        """
-        Update current app credentials. Requires obtaining a new token afterwards.
-        :return: None
-        """
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.refresh_token = None
-        self.active_token = None
-        self.save()
-
 
 class YearOfEducation(models.Model):
     number = models.CharField(primary_key=True, max_length=10)
