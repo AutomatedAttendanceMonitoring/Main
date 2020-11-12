@@ -1,4 +1,3 @@
-from django.conf.urls import url
 from django.urls import path
 from autoAttendanceMonitoring import views
 
@@ -9,4 +8,7 @@ urlpatterns = [
     path('export_to_csv/<str:path>', views.export_to_csv, name='export_to_csv'),
     path('manual-check/', views.manual_check, name='manual-check'),
     path('', views.index, name="Main page"),
+    path('zoom/send-messages', views.send_messages, name='zoom-send-messages'),
+    path('zoom/set-credentials', views.set_credentials, name='zoom-set-credentials'),
+    # path('zoom/token-callback', views.token_callback, name='zoom-token-callback'),
 ]
