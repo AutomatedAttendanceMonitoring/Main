@@ -22,12 +22,13 @@ def index(request):
 
 # region Zoom API
 # warning: needs to be protected
+# TODO: switch to POST methods
 def send_messages(request):
     email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
     auth = ZoomAuth.objects.first()
     if auth is None or auth.token is None:
         return HttpResponse(f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
-                            "passing your client_id and client_secret values as query parameters.")
+                            "passing your client_id and client_secret values as query parameters.\n")
 
     users: list[str] = list(filter(email_regex.fullmatch, request.GET.get("users", "").split(",")))
     message: str = request.GET.get("message")
@@ -46,18 +47,17 @@ def send_messages(request):
 
 
 def set_credentials(request):
-    # TODO: switch to POST methods
     client_id = request.GET.get("client_id")
     client_secret = request.GET.get("client_secret")
     if client_id is None or client_secret is None:
-        return HttpResponse("Error: client_id and client_secret are required")
+        return HttpResponse("Error: client_id and client_secret are required\n")
     else:
         try:
             ZoomAuth.objects.update_or_create(defaults={
                 "client_id": client_id, "client_secret": client_secret, "refresh_token": None, "active_token": None
             })
         except MultipleObjectsReturned:
-            return HttpResponse("Error: multiple token records, check DB manually")
+            return HttpResponse("Error: multiple token records, check DB manually\n")
         return redirect(f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&"
                         f"redirect_uri=https://{request.get_host()}{reverse('zoom-token-callback')}&"
                         f"state=https://{request.get_host()}{reverse('zoom-token-callback')}", permanent=True)

@@ -25,7 +25,7 @@ SECRET_KEY = 'd-q7dd+ghj#t&-8n&0_jd(h&qm1j53hgg)ya=)z!&cadsx(mxy'
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    'dzmnd-cloud.gq',
+    'aat.dzmnd-cloud.gq',
     '127.0.0.1'
 ]
 
