@@ -1,4 +1,5 @@
 from django.http import HttpResponse, HttpResponseRedirect
+from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.urls import reverse
 import requests
@@ -45,12 +46,18 @@ def send_messages(request):
 
 
 def set_credentials(request):
+    # TODO: switch to POST methods
     client_id = request.GET.get("client_id")
     client_secret = request.GET.get("client_secret")
     if client_id is None or client_secret is None:
         return HttpResponse("Error: client_id and client_secret are required")
     else:
-        ZoomAuth.objects.first().update_credentials(client_id, client_secret)
+        try:
+            ZoomAuth.objects.update_or_create(defaults={
+                "client_id": client_id, "client_secret": client_secret, "refresh_token": None, "active_token": None
+            })
+        except MultipleObjectsReturned:
+            return HttpResponse("Error: multiple token records, check DB manually")
         return redirect(f"https://zoom.us/oauth/authorize?response_type=code&client_id={client_id}&"
                         f"redirect_uri=https://{request.get_host()}{reverse('zoom-token-callback')}&"
                         f"state=https://{request.get_host()}{reverse('zoom-token-callback')}", permanent=True)
