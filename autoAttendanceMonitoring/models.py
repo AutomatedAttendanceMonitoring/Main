@@ -11,7 +11,6 @@ class ZoomAuth(models.Model):
     expires_at = models.DateTimeField('expiration time')
     client_id = models.CharField(max_length=25)
     client_secret = models.CharField(max_length=32)
-    redirect_url = models.CharField(max_length=64)
 
     def __str__(self) -> str:
         return self.expires_at.strftime("Token (expires at %d/%m/%Y %H:%M:%S)")
