@@ -2,9 +2,10 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.template import loader
 
-from autoAttendanceMonitoring.models import Student
-from utils.db_commands import get_student_by_link_parameter, mark_student_attendance
+from autoAttendanceMonitoring.models import Student, IsPresent
+from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
+from utils.services.export_to_csv import CsvService
 
 
 def index(request):
@@ -52,3 +53,8 @@ def send_links(request, lesson_id):
         return HttpResponse("200 OK")
     except Exception:
         return HttpResponse("500 server error")
+
+
+def export_to_csv(request, path):
+    CsvService.export_from_db(IsPresent, path)
+    return HttpResponse("200 OK")
