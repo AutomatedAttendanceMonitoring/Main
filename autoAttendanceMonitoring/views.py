@@ -38,12 +38,13 @@ def send_messages(request):
         return HttpResponse("Error: Message is empty.")
 
     url = "https://api.zoom.us/v2/chat/users/me/messages"
+    result = ""
     for email in users:
-        print(requests.post(url, data=f'{"message": "{message}","to_contact":"{email}"}', headers={
+        result += str(requests.post(url, data=f'{{"message": "{message}","to_contact":"{email}"}}', headers={
             'content-type': "application/json",
             'authorization': f"Bearer {auth.token}"
-        }).json())
-    return HttpResponse("ok")
+        }).json()) + "\n"
+    return HttpResponse(f"<pre>{result}</pre>")
 
 
 def set_credentials(request):
@@ -54,7 +55,7 @@ def set_credentials(request):
     else:
         try:
             ZoomAuth.objects.update_or_create(defaults={
-                "client_id": client_id, "client_secret": client_secret, "refresh_token": None, "active_token": None
+                "client_id": client_id, "client_secret": client_secret
             })
         except MultipleObjectsReturned:
             return HttpResponse("Error: multiple token records, check DB manually\n")
