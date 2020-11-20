@@ -120,3 +120,4 @@ def send_links(request, lesson_id):
 def export_to_csv(request, path):
     CsvService.export_from_db(IsPresent, path)
     return HttpResponse("200 OK")
+
