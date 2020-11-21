@@ -5,10 +5,9 @@ from django.urls import reverse
 import requests
 import re
 
-from .models import ZoomAuth
+from .models import ZoomAuth, Lesson, Subject, Student, IsPresent, YearOfEducation
 from django.template import loader
 
-from autoAttendanceMonitoring.models import Student, IsPresent
 from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
@@ -27,8 +26,9 @@ def send_messages(request):
     email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
     auth = ZoomAuth.objects.first()
     if auth is None or auth.token is None:
-        return HttpResponse(f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
-                            "passing your client_id and client_secret values as query parameters.\n")
+        return HttpResponse(
+            f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
+            "passing your client_id and client_secret values as query parameters.\n")
 
     users: list[str] = list(filter(email_regex.fullmatch, request.GET.get("users", "").split(",")))
     message: str = request.GET.get("message")
@@ -68,7 +68,10 @@ def token_callback(request):
     auth_code = request.GET.get("code")
     redirect_uri = request.GET.get("state")
     success: bool = ZoomAuth.objects.first().new_token(auth_code, redirect_uri)
-    return HttpResponse("Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
+    return HttpResponse(
+        "Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
+
+
 # endregion
 
 
@@ -121,3 +124,16 @@ def export_to_csv(request, path):
     CsvService.export_from_db(IsPresent, path)
     return HttpResponse("200 OK")
 
+
+def show_stats_for_lesson(request, lesson_id):
+    data = {"present": Lesson.objects.get(id=lesson_id).statistics,
+            "total": len(Student.objects.filter(year_of_education=Lesson.objects.get(id=lesson_id).subject.year))}
+    return render(request, "main/Stats.html", context=data)
+
+
+def show_stats_for_student(request, email):
+    total = 0
+    for subject in Subject.objects.filter(year=Student.objects.get(email=email).year_of_education):
+        total += len(Lesson.objects.filter(subject=subject))
+    data = {"present": Student.objects.get(email=email).statistics, "total": total}
+    return render(request, "main/Stats.html", context=data)

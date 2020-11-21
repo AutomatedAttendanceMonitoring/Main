@@ -11,4 +11,6 @@ urlpatterns = [
     path('zoom/send-messages', views.send_messages, name='zoom-send-messages'),
     path('zoom/set-credentials', views.set_credentials, name='zoom-set-credentials'),
     path('zoom/token-callback', views.token_callback, name='zoom-token-callback'),
+    path('statistics/<int:lesson_id>', views.show_stats_for_lesson, name='statistics-of-lesson'),
+    path('statistics/s/<str:email>', views.show_stats_for_student, name='statistics-of-student'),
 ]
