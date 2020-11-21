@@ -24,7 +24,10 @@ SECRET_KEY = 'd-q7dd+ghj#t&-8n&0_jd(h&qm1j53hgg)ya=)z!&cadsx(mxy'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['dzmnd-cloud.gq', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'aat.dzmnd-cloud.gq',
+    '127.0.0.1'
+]
 
 # Application definition
 
