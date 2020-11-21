@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.http import HttpResponse, HttpResponseRedirect
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
@@ -5,7 +7,7 @@ from django.urls import reverse
 import requests
 import re
 
-from .models import ZoomAuth
+from .models import ZoomAuth, Lesson, Subject
 from django.template import loader
 
 from autoAttendanceMonitoring.models import Student, IsPresent
@@ -80,21 +82,44 @@ def log_in(request):
     return render(request, 'main/log-in.html')
 
 
-def manual_check(request):
+def select_lesson(request):
+    template = loader.get_template('main/select-lesson.html')
+    lessons = Lesson.objects.all()
+    subjects = Subject.objects.all()
+
+    context = {
+        'lessons': lessons,
+        'subjects': subjects,
+    }
+    if request.method == 'POST':
+        lesson = Lesson(
+            subject=Subject.objects.get(pk=request.POST.get('lesson-subject')),
+            # TODO извлечь время из html
+            start_time=datetime(request.POST.get('date-start'))
+        )
+        lesson.save()
+        return HttpResponseRedirect("/select-lesson")
+    return HttpResponse(template.render(context, request))
+
+
+def manual_check(request, lesson_id):
     template = loader.get_template('main/manual-check.html')
-    students = Student.objects.order_by('-email')
+    lesson = Lesson.objects.get(pk=lesson_id)
+
+    marked_students = IsPresent.objects.filter(lesson_id=lesson_id)
+    students = Student.objects.filter(year_of_education=lesson.subject.year)
     context = {
         'students': students,
+        'marked_students': marked_students,
     }
     if request.method == "POST":
         print(request.POST)
-        a = Student(
-            email=request.POST['student-email'],
-            FName=request.POST['student-name'],
-            LName=request.POST['student-lname'],
-            year_of_education_id=request.POST['student-year']
+        student = Student.objects.get(pk=request.POST['student-to-mark'])
+        present = IsPresent(
+            student=student,
+            lesson_id=lesson_id
         )
-        a.save()
+        present.save()
         return HttpResponseRedirect("/manual-check")
     return HttpResponse(template.render(context, request))
 

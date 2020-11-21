@@ -8,24 +8,24 @@
         </div>
     </nav>
     <div class="jumbotron">
-        <h2>This is a list of students who marked their attendance, please write a new name to add:</h2>
+        <h2>This is a list of students who marked their attendance, please write a new name to add: </h2>
         <div class="list-group" id="myList" role="tablist">
-          {% for student in students %}
+          {% for student in marked_students %}
             <a class="list-group-item list-group-item-action" >{{student.FName}} {{ student.LName }}</a>
             {% endfor %}
         </div>
     <hr/>
-        <form action="" method="POST">
+        <form action="" method="POST" class="form-inline">
             {% csrf_token %}
              <div class="container-fluid form-group">
-                <label for="student-name">Student first name</label>
-                <input type="text" id="student-name"  name="student-name" placeholder="Harry" class="form-control">
-                <label for="student-lname">Student second name</label>
-                <input type="text" id="student-lname"  name="student-lname" placeholder="Potter" class="form-control">
-                <label for="student-email">Student e-mail</label>
-                <input type="text" id="student-email"  name="student-email" placeholder="h.potter@innopolis.university" class="form-control">
-                <label for="student-year">Student educational year</label>
-                <input type="text" id="student-year"  name="student-year" placeholder="1" class="form-control">
+             <label for="select-student">Select a student</label>
+               <select id="select-student" class="custom-select my-1 mr-sm-2">
+                   {% for student in students %}
+                   <option value="{{ student.email }}"> {{ student.FName }}
+                                                        {{ student.LName }}
+                                                        ({{ student.email }})</option>
+                   {% endfor %}
+               </select>
             </div>
             <input type="submit" id="submit" value="Mark attendance" class="btn btn-primary btn-lg">
         </form>
