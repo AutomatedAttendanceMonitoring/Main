@@ -1,5 +1,6 @@
 from django.db import models
 from base64 import b64encode
+from django.utils import timezone
 from datetime import datetime, timedelta
 import pytz
 import requests
@@ -9,7 +10,7 @@ import uuid
 class ZoomAuth(models.Model):
     active_token = models.CharField(max_length=700, default="")
     refresh_token = models.CharField(max_length=700, default="")
-    expires_at = models.DateTimeField('expiration time', default=datetime.fromtimestamp(0))
+    expires_at = models.DateTimeField('expiration time', default=datetime.fromtimestamp(0).replace(tzinfo=pytz.utc))
     client_id = models.CharField(max_length=25)
     client_secret = models.CharField(max_length=32)
 
@@ -22,7 +23,7 @@ class ZoomAuth(models.Model):
         Get an active token. If the current one is expired, obtain the new one.
         :return: Current active token or None if it needs to be obtained manually
         """
-        if self.refresh_token is not None and pytz.UTC.localize(datetime.now()) >= self.expires_at:
+        if self.refresh_token is not None and timezone.now() >= self.expires_at:
             self.refresh_oauth()
         return self.active_token
 
@@ -39,7 +40,7 @@ class ZoomAuth(models.Model):
         }).json()
         self.active_token = response.get("access_token")
         self.refresh_token = response.get("refresh_token")
-        self.expires_at = datetime.now() + timedelta(seconds=response.get("expires_in"))
+        self.expires_at = timezone.now() + timedelta(seconds=response.get("expires_in"))
         self.save()
         return self.active_token is not None
 
@@ -54,7 +55,7 @@ class ZoomAuth(models.Model):
         }).json()
         self.active_token = response.get("access_token")
         self.refresh_token = response.get("refresh_token")
-        self.expires_at = datetime.now() + timedelta(seconds=response.get("expires_in"))
+        self.expires_at = timezone.now() + timedelta(seconds=response.get("expires_in"))
         self.save()
         return self.active_token is not None
 
