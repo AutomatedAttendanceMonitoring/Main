@@ -1,4 +1,5 @@
-from autoAttendanceMonitoring.models import AttendanceLink, Lesson, Student, IsPresent
+from autoAttendanceMonitoring.models import Lesson, Student, ZoomAuth
+from utils.Zoom import Zoom
 from utils.db_commands import add_student_link
 from utils.link_generator import LinkGenerator
 
@@ -11,8 +12,9 @@ def send_link_to(student: Student, lesson_id: str):
     print(link)
     add_student_link(link=link, student=student, lesson=lesson)
 
-    # TODO: sending link to zoom pc
-
+    zoom = Zoom(ZoomAuth.objects.first())
+    # print out the status of the message sending
+    print(zoom.send_message([student.email], link)[0])
 
 
 

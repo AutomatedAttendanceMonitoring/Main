@@ -1,17 +1,15 @@
-from django.http import HttpResponse, HttpResponseRedirect
 from django.core.exceptions import MultipleObjectsReturned
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.urls import reverse
-import requests
-import re
-
-from .models import ZoomAuth
 from django.template import loader
+from django.urls import reverse
 
 from autoAttendanceMonitoring.models import Student, IsPresent
+from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
+from .models import ZoomAuth
 
 
 def index(request):
@@ -24,27 +22,22 @@ def index(request):
 # warning: needs to be protected
 # TODO: switch to POST methods
 def send_messages(request):
-    email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
-    auth = ZoomAuth.objects.first()
-    if auth is None or auth.token is None:
-        return HttpResponse(f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
-                            "passing your client_id and client_secret values as query parameters.\n")
+    zoom = Zoom(ZoomAuth.objects.first())
+    results = zoom.send_message(request.GET.get("users", "").split(","), request.GET.get("message"))
+    responses = {
+        ZoomError.SUCCESS: "Message sent successfully; %",
+        ZoomError.NO_TOKEN: f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
+                            "passing your client_id and client_secret values as query parameters.",
+        ZoomError.INVALID_EMAIL: "Email specified is not valid. %",
+        ZoomError.EMPTY_MESSAGE: "Error: the message is empty.",
+        ZoomError.USER_NOT_FOUND: "Error: the user either does not exist or not in the contact list. %",
+        ZoomError.SENDING_ERROR: "Error: unable to send the message. %",
+    }
+    output = ""
+    for status, data in results:
+        output += responses[status].replace("%", str(data)) + "\n"
 
-    users: list[str] = list(filter(email_regex.fullmatch, request.GET.get("users", "").split(",")))
-    message: str = request.GET.get("message")
-    if len(users) == 0:
-        return HttpResponse("Error: No valid emails found.")
-    elif message is None or message == "":
-        return HttpResponse("Error: Message is empty.")
-
-    url = "https://api.zoom.us/v2/chat/users/me/messages"
-    result = ""
-    for email in users:
-        result += str(requests.post(url, data=f'{{"message": "{message}","to_contact":"{email}"}}', headers={
-            'content-type': "application/json",
-            'authorization': f"Bearer {auth.token}"
-        }).json()) + "\n"
-    return HttpResponse(f"<pre>{result}</pre>")
+    return HttpResponse(f"<pre>{output}</pre>")
 
 
 def set_credentials(request):
