@@ -49,7 +49,7 @@ class ZoomAuth(models.Model):
         :return: True on successful refresh
         """
         client_info = b64encode(self.client_id.encode("utf-8") + b':' + self.client_secret.encode("utf-8")).decode("utf-8")
-        response = requests.post("https://zoom.us/oauth/token?grant_type=refresh_token&refresh_token=", headers={
+        response = requests.post(f"https://zoom.us/oauth/token?grant_type=refresh_token&refresh_token={self.refresh_token}", headers={
             "Authorization": f"Basic {client_info}"
         }).json()
         self.active_token = response.get("access_token")
