@@ -60,6 +60,11 @@ class ZoomAuth(models.Model):
         return self.active_token is not None
 
 
+class ZoomParticipants(models.Model):
+    meeting_id = models.IntegerField()
+    email = models.IntegerField()
+
+
 class YearOfEducation(models.Model):
     number = models.CharField(primary_key=True, max_length=10)
 

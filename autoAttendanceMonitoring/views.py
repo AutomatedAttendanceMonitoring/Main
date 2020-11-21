@@ -1,15 +1,16 @@
 from django.core.exceptions import MultipleObjectsReturned
 from django.http import HttpResponse, HttpResponseRedirect
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
+import json
 
-from autoAttendanceMonitoring.models import Student, IsPresent
+from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
 from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
-from .models import ZoomAuth
 
 
 def index(request):
@@ -62,6 +63,20 @@ def token_callback(request):
     redirect_uri = request.GET.get("state")
     success: bool = ZoomAuth.objects.first().new_token(auth_code, redirect_uri)
     return HttpResponse("Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
+
+
+@csrf_exempt
+def joined_left_participant(request):
+    event: dict = json.loads(request.body)
+    record = {
+        "meeting_id": event["payload"]["object"]["id"],
+        "email": ''.join(event["payload"]["object"]["participant"]["user_name"].split())
+    }
+    if event.get("event") == "meeting.participant_joined":
+        ZoomParticipants.objects.update_or_create(defaults=record)
+    elif event.get("event") == "meeting.participant_left":
+        ZoomParticipants.objects.filter(**record).delete()
+    return HttpResponse()
 # endregion
 
 

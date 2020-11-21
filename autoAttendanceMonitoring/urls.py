@@ -11,4 +11,5 @@ urlpatterns = [
     path('zoom/send-messages', views.send_messages, name='zoom-send-messages'),
     path('zoom/set-credentials', views.set_credentials, name='zoom-set-credentials'),
     path('zoom/token-callback', views.token_callback, name='zoom-token-callback'),
+    path('zoom/join-leave-webhook', views.joined_left_participant, name='zoom-join-leave-webhook'),
 ]

@@ -14,6 +14,8 @@ class ZoomError(Enum):
     EMPTY_MESSAGE = 3
     USER_NOT_FOUND = 1001
     SENDING_ERROR = 5301
+    INVALID_MEETING_ID = 3001
+    MEETING_ACCESS_DENIED = 300
 
 
 class Zoom:
@@ -39,3 +41,10 @@ class Zoom:
             else:
                 result.append((ZoomError.INVALID_EMAIL, {"email": email}))
         return result
+
+    # def list_participants(self, meeting_id: str) -> list[(ZoomError, dict)]:
+    #     if self.__auth is None or self.__auth.token is None:
+    #         return [ZoomError.NO_TOKEN, dict()]
+    #
+    #     url = f"https://api.zoom.us/v2/metrics/meetings/{meeting_id}/participants?page_size=300"
+    #     return [(ZoomError.MEETING_ACCESS_DENIED, dict())]
