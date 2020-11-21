@@ -62,7 +62,7 @@ class ZoomAuth(models.Model):
 
 class ZoomParticipants(models.Model):
     meeting_id = models.IntegerField()
-    email = models.IntegerField()
+    email = models.CharField(max_length=50)
 
 
 class YearOfEducation(models.Model):
