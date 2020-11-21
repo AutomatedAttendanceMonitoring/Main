@@ -61,7 +61,7 @@ class ZoomAuth(models.Model):
 
 
 class ZoomParticipants(models.Model):
-    meeting_id = models.IntegerField()
+    meeting_id = models.CharField(max_length=12)
     email = models.CharField(max_length=50)
 
 

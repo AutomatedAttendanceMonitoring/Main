@@ -69,7 +69,7 @@ def token_callback(request):
 def joined_left_participant(request):
     event: dict = json.loads(request.body)
     record = {
-        "meeting_id": event["payload"]["object"]["id"],
+        "meeting_id": str(event["payload"]["object"]["id"]),
         "email": ''.join(event["payload"]["object"]["participant"]["user_name"].split())
     }
     if event.get("event") == "meeting.participant_joined":
