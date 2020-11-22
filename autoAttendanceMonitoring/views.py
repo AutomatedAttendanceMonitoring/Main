@@ -153,7 +153,7 @@ def mark_student(request, link_parameter):
     template = loader.get_template('main/attendance-marked.html')
     success = False
     try:
-        mark_student_attendance(f"http://127.0.0.1:8000/markattendance/{link_parameter}")
+        mark_student_attendance(f"{request.scheme}://{request.get_host()}/markattendance/{link_parameter}")
         success = True
     except:
         pass
