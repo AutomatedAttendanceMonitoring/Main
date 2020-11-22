@@ -164,11 +164,14 @@ def mark_student(request, link_parameter):
 
 
 def send_links(request, lesson_id):
+    base_url = f"{request.scheme}://{request.get_host()}/markattendance/"
     try:
-        base_url = f"{request.scheme}://{request.get_host()}/markattendance/"
         for entry in ZoomParticipants.objects.filter(meeting_id=request.GET['meeting']):
-            student = Student.objects.get(email=entry.email)
-            send_link_to(base_url, student, lesson_id)
+            try:
+                student = Student.objects.get(email=entry.email)
+                send_link_to(base_url, student, lesson_id)
+            except Student.DoesNotExist:
+                pass
         return redirect(f"/manual-check/{lesson_id}")
     except Exception:
         return HttpResponse("500 server error")
