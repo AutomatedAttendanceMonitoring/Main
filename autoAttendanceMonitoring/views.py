@@ -108,7 +108,7 @@ def manual_check(request, lesson_id):
     template = loader.get_template('main/manual-check.html')
     lesson = Lesson.objects.get(pk=lesson_id)
 
-    marked_students = IsPresent.objects.filter(lesson_id=lesson_id)
+    marked_students = [record.student for record in list(IsPresent.objects.filter(lesson_id=lesson_id))]
     students = Student.objects.filter(year_of_education=lesson.subject.year)
     context = {
         'students': students,
@@ -116,13 +116,13 @@ def manual_check(request, lesson_id):
     }
     if request.method == "POST":
         print(request.POST)
-        student = Student.objects.get(pk=request.POST['student-to-mark'])
+        student = Student.objects.get(pk=request.POST['select-student'])
         present = IsPresent(
             student=student,
             lesson_id=lesson_id
         )
         present.save()
-        return HttpResponseRedirect("/manual-check")
+        return HttpResponseRedirect(f"/manual-check/{lesson_id}")
     return HttpResponse(template.render(context, request))
 
 

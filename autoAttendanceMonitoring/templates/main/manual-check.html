@@ -3,7 +3,7 @@
     <nav class="navbar navbar-dark bg-primary">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">Auto Attendance Monitoring</a>
+                <a class="navbar-brand" href="/">Auto Attendance Monitoring</a>
             </div>
         </div>
     </nav>
@@ -19,7 +19,7 @@
             {% csrf_token %}
              <div class="container-fluid form-group">
              <label for="select-student">Select a student</label>
-               <select id="select-student" class="custom-select my-1 mr-sm-2">
+               <select id="select-student" name="select-student" class="custom-select my-1 mr-sm-2">
                    {% for student in students %}
                    <option value="{{ student.email }}"> {{ student.FName }}
                                                         {{ student.LName }}
