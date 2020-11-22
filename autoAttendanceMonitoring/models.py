@@ -74,6 +74,7 @@ class Student(models.Model):
     FName = models.CharField(max_length=50)
     LName = models.CharField(max_length=50)
     year_of_education = models.ForeignKey(YearOfEducation, models.DO_NOTHING)
+    statistics = models.IntegerField(default=None)
 
 
 class Subject(models.Model):
@@ -88,6 +89,7 @@ class Lesson(models.Model):
     end_time = models.DateTimeField()
     kind = models.CharField(max_length=10)
     subject = models.ForeignKey(Subject, models.DO_NOTHING)
+    statistics = models.IntegerField(default=None)
 
 
 class IsTaughtBy(models.Model):

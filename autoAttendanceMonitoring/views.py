@@ -2,6 +2,11 @@ from django.core.exceptions import MultipleObjectsReturned
 from django.http import HttpResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
+from django.urls import reverse
+import requests
+import re
+
+from .models import ZoomAuth, Lesson, Subject, Student, IsPresent, YearOfEducation
 from django.template import loader
 from django.urls import reverse
 import json
@@ -129,3 +134,16 @@ def export_to_csv(request, path):
     CsvService.export_from_db(IsPresent, path)
     return HttpResponse("200 OK")
 
+
+def show_stats_for_lesson(request, lesson_id):
+    data = {"present": Lesson.objects.get(id=lesson_id).statistics,
+            "total": len(Student.objects.filter(year_of_education=Lesson.objects.get(id=lesson_id).subject.year))}
+    return render(request, "main/Stats.html", context=data)
+
+
+def show_stats_for_student(request, email):
+    total = 0
+    for subject in Subject.objects.filter(year=Student.objects.get(email=email).year_of_education):
+        total += len(Lesson.objects.filter(subject=subject))
+    data = {"present": Student.objects.get(email=email).statistics, "total": total}
+    return render(request, "main/Stats.html", context=data)
