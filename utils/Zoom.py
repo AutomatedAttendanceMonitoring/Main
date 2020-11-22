@@ -4,7 +4,7 @@ from enum import Enum, unique
 import requests
 
 from autoAttendanceMonitoring.models import ZoomAuth, ZoomParticipants, Student
-from utils.link_sender import send_link_to
+# from utils.link_sender import send_link_to
 
 
 @unique
@@ -24,7 +24,7 @@ class Zoom:
         self.__auth = auth
         self.__email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
 
-    def send_message(self, emails: list[str], message_text: str) -> list[(ZoomError, dict)]:
+    def send_message(self, emails: list, message_text: str) -> list:
         if self.__auth is None or self.__auth.token is None:
             return [ZoomError.NO_TOKEN, dict()]
         elif message_text is None or message_text == "":
@@ -43,8 +43,8 @@ class Zoom:
                 result.append((ZoomError.INVALID_EMAIL, {"email": email}))
         return result
 
-    @staticmethod
-    def collect_attendance(meeting_id: str, lesson_id: str):
-        for entry in ZoomParticipants.objects.filter(meeting_id=meeting_id):
-            student = Student.objects.get(email=entry.email)
-            send_link_to(student, lesson_id)
+    # @staticmethod
+    # def collect_attendance(meeting_id: str, lesson_id: str):
+    #     for entry in ZoomParticipants.objects.filter(meeting_id=meeting_id):
+    #         student = Student.objects.get(email=entry.email)
+    #         send_link_to(student, lesson_id)

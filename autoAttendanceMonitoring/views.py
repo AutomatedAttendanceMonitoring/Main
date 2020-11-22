@@ -1,21 +1,18 @@
+import json
+
 from django.core.exceptions import MultipleObjectsReturned
 from django.http import HttpResponse, HttpResponseRedirect
-from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from django.urls import reverse
-import requests
-import re
-
-from .models import ZoomAuth, Lesson, Subject, Student, IsPresent, YearOfEducation
 from django.template import loader
 from django.urls import reverse
-import json
+from django.views.decorators.csrf import csrf_exempt
 
 from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
 from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
+from .models import Lesson, Subject
 
 
 def index(request):
@@ -67,7 +64,8 @@ def token_callback(request):
     auth_code = request.GET.get("code")
     redirect_uri = request.GET.get("state")
     success: bool = ZoomAuth.objects.first().new_token(auth_code, redirect_uri)
-    return HttpResponse("Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
+    return HttpResponse(
+        "Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
 
 
 @csrf_exempt
@@ -82,6 +80,8 @@ def joined_left_participant(request):
     elif event.get("event") == "meeting.participant_left":
         ZoomParticipants.objects.filter(**record).delete()
     return HttpResponse()
+
+
 # endregion
 
 
