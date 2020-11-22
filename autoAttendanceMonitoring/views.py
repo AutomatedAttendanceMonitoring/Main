@@ -156,7 +156,7 @@ def manual_check(request, lesson_id):
 def mark_student(request, link_parameter):
     try:
         mark_student_attendance(f"http://127.0.0.1:8000/markattendance/{link_parameter}")
-        return HttpResponse("200 OK")
+        return HttpResponse("Succes, you can leave this page")
     except:
         return HttpResponse("403 error")
 
@@ -166,7 +166,7 @@ def send_links(request, lesson_id):
         students = Student.objects.all()
         for student in students:
             send_link_to(student, lesson_id)
-        return HttpResponse("200 OK")
+        return HttpResponseRedirect(f"/send_links/{lesson_id}")
     except Exception:
         return HttpResponse("500 server error")
 
