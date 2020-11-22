@@ -15,6 +15,7 @@ from django.template import loader
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
+from utils import statistics
 from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
 from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
@@ -177,7 +178,7 @@ def export_to_csv(request, path):
 
 
 def show_stats_for_lesson(request, lesson_id):
-    data = {"present": Lesson.objects.get(id=lesson_id).statistics,
+    data = {"present": statistics.lesson_statistics(lesson_id),
             "total": len(Student.objects.filter(year_of_education=Lesson.objects.get(id=lesson_id).subject.year))}
     return render(request, "main/Stats.html", context=data)
 
@@ -186,5 +187,5 @@ def show_stats_for_student(request, email):
     total = 0
     for subject in Subject.objects.filter(year=Student.objects.get(email=email).year_of_education):
         total += len(Lesson.objects.filter(subject=subject))
-    data = {"present": Student.objects.get(email=email).statistics, "total": total}
+    data = {"present": statistics.student_statistics(email), "total": total}
     return render(request, "main/Stats.html", context=data)
