@@ -1,0 +1,22 @@
+{% extends "main/wrapper.html" %}
+{% block content %}
+
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">Auto Attendance Monitoring</a>
+            </div>
+        </div>
+    </nav>
+    {% if success %}
+        <!-- Success Alert -->
+        <div class="alert alert-success fade show">
+            <strong>Success!</strong> Your attendance was marked. You can leave this page.
+        </div>
+    {% else %}
+        <!-- Error Alert -->
+        <div class="alert alert-danger fade show">
+            <strong>Error!</strong> A problem has occurred while marking your attendance. Contact your instructor to mark it manually.
+        </div>
+    {% endif %}
+{% endblock %}
