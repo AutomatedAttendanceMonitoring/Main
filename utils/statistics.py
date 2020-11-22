@@ -1,10 +1,9 @@
 from autoAttendanceMonitoring.models import IsPresent, Student, Lesson
 
 
-def lesson_statistics():
-    for lesson in Lesson.objects.all():
-        if lesson.statistics is None:
-            lesson.statistics = len(IsPresent.objects.get(lesson=lesson.id))
-    for student in Student.objects.all():
-        if student.statistics is None:
-            student.statistics = len(IsPresent.objects.get(student=student))
+def lesson_statistics(lesson_id):
+    return len(IsPresent.objects.filter(lesson=lesson_id))
+
+
+def student_statistics(email):
+    return len(IsPresent.objects.filter(student=email))

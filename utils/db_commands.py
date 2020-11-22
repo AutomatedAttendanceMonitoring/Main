@@ -28,8 +28,7 @@ def mark_student_attendance(link_parameter: str):
 
 
 def set_present(lesson: Lesson, student: Student):
-    is_present = IsPresent(lesson=lesson, student=student)
-    is_present.save()
+    IsPresent.objects.get_or_create(lesson=lesson, student=student)
 
 
 def add_student_link(link: str, student: Student, lesson: Lesson):
