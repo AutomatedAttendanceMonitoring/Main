@@ -150,6 +150,8 @@ def manual_check(request, lesson_id):
 
 
 def mark_student(request, link_parameter):
+    if request.method not in ["GET", "POST"] or request.META.get('HTTP_USER_AGENT', '').find("Zoom") != -1:
+        return HttpResponse("Open the page to mark your attendance")
     template = loader.get_template('main/attendance-marked.html')
     success = False
     try:
