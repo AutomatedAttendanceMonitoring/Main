@@ -2,7 +2,7 @@ from datetime import datetime
 import json
 import re
 
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseBadRequest
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 
@@ -28,7 +28,7 @@ def index(request):
         if parsed_link is None:
             return HttpResponseBadRequest("<pre>Error: Zoom link is not valid.</pre>")
         else:
-            return HttpResponseRedirect(f"/send_links/{request.POST['select-lesson']}?meeting={parsed_link.group('id')}")
+            return redirect(f"/send_links/{request.POST['select-lesson']}?meeting={parsed_link.group('id')}")
     return HttpResponse(template.render(context, request))
 
 
@@ -121,7 +121,7 @@ def select_lesson(request):
             statistics=0,
         )
         lesson.save()
-        return HttpResponseRedirect("/select-lesson")
+        return redirect("/select-lesson")
     return HttpResponse(template.render(context, request))
 
 
@@ -144,13 +144,13 @@ def manual_check(request, lesson_id):
             lesson_id=lesson_id
         )
         present.save()
-        return HttpResponseRedirect(f"/manual-check/{lesson_id}")
+        return redirect(f"/manual-check/{lesson_id}")
     return HttpResponse(template.render(context, request))
 
 
 def mark_student(request, link_parameter):
     try:
-        mark_student_attendance(f"http://127.0.0.1:8000/markattendance/{link_parameter}")
+        mark_student_attendance(f"{request.scheme}://{request.get_host()}/markattendance/{link_parameter}")
         return HttpResponse("200 OK")
     except:
         return HttpResponse("403 error")
@@ -158,9 +158,10 @@ def mark_student(request, link_parameter):
 
 def send_links(request, lesson_id):
     try:
+        base_url = f"{request.scheme}://{request.get_host()}/markattendance/"
         for entry in ZoomParticipants.objects.filter(meeting_id=request.GET['meeting']):
             student = Student.objects.get(email=entry.email)
-            send_link_to(student, lesson_id)
+            send_link_to(base_url, student, lesson_id)
         return HttpResponse("200 OK")
     except Exception:
         return HttpResponse("500 server error")
