@@ -3,7 +3,8 @@ from enum import Enum, unique
 
 import requests
 
-from autoAttendanceMonitoring.models import ZoomAuth
+from autoAttendanceMonitoring.models import ZoomAuth, ZoomParticipants, Student
+from utils.link_sender import send_link_to
 
 
 @unique
@@ -21,9 +22,9 @@ class ZoomError(Enum):
 class Zoom:
     def __init__(self, auth: ZoomAuth):
         self.__auth = auth
+        self.__email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
 
     def send_message(self, emails: list[str], message_text: str) -> list[(ZoomError, dict)]:
-        email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
         if self.__auth is None or self.__auth.token is None:
             return [ZoomError.NO_TOKEN, dict()]
         elif message_text is None or message_text == "":
@@ -32,7 +33,7 @@ class Zoom:
         url = "https://api.zoom.us/v2/chat/users/me/messages"
         result = []
         for email in emails:
-            if email_regex.fullmatch(email):
+            if self.__email_regex.fullmatch(email):
                 response: dict = requests.post(url, data=f'{{"message": "{message_text}","to_contact":"{email}"}}', headers={
                     'content-type': "application/json",
                     'authorization': f"Bearer {self.__auth.token}"
@@ -42,9 +43,8 @@ class Zoom:
                 result.append((ZoomError.INVALID_EMAIL, {"email": email}))
         return result
 
-    # def list_participants(self, meeting_id: str) -> list[(ZoomError, dict)]:
-    #     if self.__auth is None or self.__auth.token is None:
-    #         return [ZoomError.NO_TOKEN, dict()]
-    #
-    #     url = f"https://api.zoom.us/v2/metrics/meetings/{meeting_id}/participants?page_size=300"
-    #     return [(ZoomError.MEETING_ACCESS_DENIED, dict())]
+    @staticmethod
+    def collect_attendance(meeting_id: str, lesson_id: str):
+        for entry in ZoomParticipants.objects.filter(meeting_id=meeting_id):
+            student = Student.objects.get(email=entry.email)
+            send_link_to(student, lesson_id)
