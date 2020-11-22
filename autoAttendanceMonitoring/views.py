@@ -139,6 +139,7 @@ def manual_check(request, lesson_id):
     context = {
         'students': students,
         'marked_students': marked_students,
+        'lesson': lesson
     }
     if request.method == "POST":
         print(request.POST)
