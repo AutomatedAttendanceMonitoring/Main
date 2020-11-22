@@ -93,9 +93,11 @@ def select_lesson(request):
     }
     if request.method == 'POST':
         lesson = Lesson(
-            subject=Subject.objects.get(pk=request.POST.get('lesson-subject')),
+            subject=Subject.objects.get(pk=request.POST['lesson-subject']),
             # TODO извлечь время из html
-            start_time=datetime(request.POST.get('date-start'))
+            start_time=datetime.strptime(request.POST['date-start'], '%d/%m/%Y - %H:%M'),
+            end_time=datetime.strptime(request.POST['date-end'], '%d/%m/%Y - %H:%M'),
+            kind=request.POST['lesson-kind'],
         )
         lesson.save()
         return HttpResponseRedirect("/select-lesson")
