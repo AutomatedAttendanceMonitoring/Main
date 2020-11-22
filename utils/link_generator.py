@@ -1,6 +1,7 @@
-from datetime import datetime, timezone
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from hashlib import sha1
+
 
 @dataclass
 class LinkGenerator:

@@ -79,9 +79,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'attendance_db',
-        'USER': 'postgres',
-        'PASSWORD': 'Zahar012345',
-        'HOST': 'localhost',
+        'USER': 'fse_team',
+        'PASSWORD': 'qefasd4wsdf4rqq34fqq4432dfaFASdf',
+        'HOST': 'database-2.caoemzoflqo5.us-east-2.rds.amazonaws.com',
         'PORT': '5432',
     }
 }

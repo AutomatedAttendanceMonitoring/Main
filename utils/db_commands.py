@@ -1,4 +1,5 @@
-from autoAttendanceMonitoring.models import Student, YearOfEducation, AttendanceLink, Lesson, IsPresent
+from autoAttendanceMonitoring.models import Student, AttendanceLink, Lesson, IsPresent
+from utils.moodleAPI import import_to_moodle
 
 
 def add_student(email: str, FName: str, LName: str, year_of_education_id: str):
@@ -23,6 +24,7 @@ def mark_student_attendance(link_parameter: str):
     student = get_student_by_link_parameter(link_parameter)
     lesson = get_lesson_by_link_parameter(link_parameter)
     set_present(lesson, student)
+    import_to_moodle(lesson.start_time, lesson.start_time, lesson.kind, student.email)
 
 
 def set_present(lesson: Lesson, student: Student):
@@ -37,4 +39,3 @@ def add_student_link(link: str, student: Student, lesson: Lesson):
     print(alink.__dict__)
     alink.save()
     print("not error 3")
-

@@ -1,50 +1,60 @@
+from datetime import datetime
+
 from django.http import HttpResponse, HttpResponseRedirect
+import json
+
 from django.core.exceptions import MultipleObjectsReturned
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 import requests
 import re
 
-from .models import ZoomAuth, Lesson, Subject, Student, IsPresent
+from .models import ZoomAuth, Lesson, Subject
 from django.template import loader
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
+from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
+from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
+from .models import Lesson, Subject
 
 
 def index(request):
+    template = loader.get_template('main/main-page.html')
+    lessons = Lesson.objects.all()
+    context = {
+        'lessons': lessons
+    }
     if request.method == "POST":
-        return HttpResponseRedirect("/send_links/aca9956a-4e37-400c-9a0b-b83290ffabca")
-    return render(request, 'main/main-page.html')
+        # TODO get student emails -> send messages
+        return HttpResponseRedirect(f"/send_links/{request.POST['select-lesson']}")
+    return HttpResponse(template.render(context, request))
 
 
 # region Zoom API
 # warning: needs to be protected
 # TODO: switch to POST methods
 def send_messages(request):
-    email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
-    auth = ZoomAuth.objects.first()
-    if auth is None or auth.token is None:
-        return HttpResponse(
-            f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
-            "passing your client_id and client_secret values as query parameters.\n")
+    zoom = Zoom(ZoomAuth.objects.first())
+    results = zoom.send_message(request.GET.get("users", "").split(","), request.GET.get("message"))
+    responses = {
+        ZoomError.SUCCESS: "Message sent successfully; %",
+        ZoomError.NO_TOKEN: f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
+                            "passing your client_id and client_secret values as query parameters.",
+        ZoomError.INVALID_EMAIL: "Email specified is not valid. %",
+        ZoomError.EMPTY_MESSAGE: "Error: the message is empty.",
+        ZoomError.USER_NOT_FOUND: "Error: the user either does not exist or not in the contact list. %",
+        ZoomError.SENDING_ERROR: "Error: unable to send the message. %",
+    }
+    output = ""
+    for status, data in results:
+        output += responses[status].replace("%", str(data)) + "\n"
 
-    users: list[str] = list(filter(email_regex.fullmatch, request.GET.get("users", "").split(",")))
-    message: str = request.GET.get("message")
-    if len(users) == 0:
-        return HttpResponse("Error: No valid emails found.")
-    elif message is None or message == "":
-        return HttpResponse("Error: Message is empty.")
-
-    url = "https://api.zoom.us/v2/chat/users/me/messages"
-    result = ""
-    for email in users:
-        result += str(requests.post(url, data=f'{{"message": "{message}","to_contact":"{email}"}}', headers={
-            'content-type': "application/json",
-            'authorization': f"Bearer {auth.token}"
-        }).json()) + "\n"
-    return HttpResponse(f"<pre>{result}</pre>")
+    return HttpResponse(f"<pre>{output}</pre>")
 
 
 def set_credentials(request):
@@ -72,6 +82,20 @@ def token_callback(request):
         "Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
 
 
+@csrf_exempt
+def joined_left_participant(request):
+    event: dict = json.loads(request.body)
+    record = {
+        "meeting_id": str(event["payload"]["object"]["id"]),
+        "email": ''.join(event["payload"]["object"]["participant"]["user_name"].split())
+    }
+    if event.get("event") == "meeting.participant_joined":
+        ZoomParticipants.objects.update_or_create(defaults=record)
+    elif event.get("event") == "meeting.participant_left":
+        ZoomParticipants.objects.filter(**record).delete()
+    return HttpResponse()
+
+
 # endregion
 
 
@@ -83,22 +107,49 @@ def log_in(request):
     return render(request, 'main/log-in.html')
 
 
-def manual_check(request):
+def select_lesson(request):
+    template = loader.get_template('main/select-lesson.html')
+    lessons = Lesson.objects.all()
+    subjects = Subject.objects.all()
+
+    context = {
+        'lessons': lessons,
+        'subjects': subjects,
+    }
+    if request.method == 'POST':
+        lesson = Lesson(
+            subject=Subject.objects.get(pk=request.POST['lesson-subject']),
+            # TODO извлечь время из html
+            start_time=datetime.strptime(request.POST['date-start'], '%d/%m/%Y - %H:%M'),
+            end_time=datetime.strptime(request.POST['date-end'], '%d/%m/%Y - %H:%M'),
+            kind=request.POST['lesson-kind'],
+            statistics=0,
+        )
+        lesson.save()
+        return HttpResponseRedirect("/select-lesson")
+    return HttpResponse(template.render(context, request))
+
+
+def manual_check(request, lesson_id):
     template = loader.get_template('main/manual-check.html')
-    students = Student.objects.order_by('-email')
+    lesson = Lesson.objects.get(pk=lesson_id)
+
+    marked_students = [record.student for record in list(IsPresent.objects.filter(lesson_id=lesson_id))]
+    students = Student.objects.filter(year_of_education=lesson.subject.year)
     context = {
         'students': students,
+        'marked_students': marked_students,
+        'lesson': lesson
     }
     if request.method == "POST":
         print(request.POST)
-        a = Student(
-            email=request.POST['student-email'],
-            FName=request.POST['student-name'],
-            LName=request.POST['student-lname'],
-            year_of_education_id=request.POST['student-year']
+        student = Student.objects.get(pk=request.POST['select-student'])
+        present = IsPresent(
+            student=student,
+            lesson_id=lesson_id
         )
-        a.save()
-        return HttpResponseRedirect("/manual-check")
+        present.save()
+        return HttpResponseRedirect(f"/manual-check/{lesson_id}")
     return HttpResponse(template.render(context, request))
 
 
