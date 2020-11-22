@@ -123,6 +123,7 @@ def select_lesson(request):
             start_time=datetime.strptime(request.POST['date-start'], '%d/%m/%Y - %H:%M'),
             end_time=datetime.strptime(request.POST['date-end'], '%d/%m/%Y - %H:%M'),
             kind=request.POST['lesson-kind'],
+            statistics=0,
         )
         lesson.save()
         return HttpResponseRedirect("/select-lesson")
