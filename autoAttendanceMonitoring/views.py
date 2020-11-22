@@ -5,7 +5,7 @@ from django.urls import reverse
 import requests
 import re
 
-from .models import ZoomAuth, Lesson, Subject, Student, IsPresent, YearOfEducation
+from .models import ZoomAuth, Lesson, Subject, Student, IsPresent
 from django.template import loader
 
 from utils.db_commands import mark_student_attendance
