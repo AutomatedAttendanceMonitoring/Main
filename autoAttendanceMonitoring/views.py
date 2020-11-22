@@ -1,7 +1,10 @@
 from datetime import datetime
 
 from django.http import HttpResponse, HttpResponseRedirect
+import json
+
 from django.core.exceptions import MultipleObjectsReturned
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse
 import requests
@@ -9,11 +12,15 @@ import re
 
 from .models import ZoomAuth, Lesson, Subject
 from django.template import loader
+from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
-from autoAttendanceMonitoring.models import Student, IsPresent
+from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
+from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
 from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
+from .models import Lesson, Subject
 
 
 def index(request):
@@ -32,27 +39,22 @@ def index(request):
 # warning: needs to be protected
 # TODO: switch to POST methods
 def send_messages(request):
-    email_regex = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]{2,}$")
-    auth = ZoomAuth.objects.first()
-    if auth is None or auth.token is None:
-        return HttpResponse(f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
-                            "passing your client_id and client_secret values as query parameters.\n")
+    zoom = Zoom(ZoomAuth.objects.first())
+    results = zoom.send_message(request.GET.get("users", "").split(","), request.GET.get("message"))
+    responses = {
+        ZoomError.SUCCESS: "Message sent successfully; %",
+        ZoomError.NO_TOKEN: f"Error: Zoom token is not present. Go to https://{request.get_host()}{reverse('zoom-set-credentials')} "
+                            "passing your client_id and client_secret values as query parameters.",
+        ZoomError.INVALID_EMAIL: "Email specified is not valid. %",
+        ZoomError.EMPTY_MESSAGE: "Error: the message is empty.",
+        ZoomError.USER_NOT_FOUND: "Error: the user either does not exist or not in the contact list. %",
+        ZoomError.SENDING_ERROR: "Error: unable to send the message. %",
+    }
+    output = ""
+    for status, data in results:
+        output += responses[status].replace("%", str(data)) + "\n"
 
-    users: list[str] = list(filter(email_regex.fullmatch, request.GET.get("users", "").split(",")))
-    message: str = request.GET.get("message")
-    if len(users) == 0:
-        return HttpResponse("Error: No valid emails found.")
-    elif message is None or message == "":
-        return HttpResponse("Error: Message is empty.")
-
-    url = "https://api.zoom.us/v2/chat/users/me/messages"
-    result = ""
-    for email in users:
-        result += str(requests.post(url, data=f'{{"message": "{message}","to_contact":"{email}"}}', headers={
-            'content-type': "application/json",
-            'authorization': f"Bearer {auth.token}"
-        }).json()) + "\n"
-    return HttpResponse(f"<pre>{result}</pre>")
+    return HttpResponse(f"<pre>{output}</pre>")
 
 
 def set_credentials(request):
@@ -76,7 +78,24 @@ def token_callback(request):
     auth_code = request.GET.get("code")
     redirect_uri = request.GET.get("state")
     success: bool = ZoomAuth.objects.first().new_token(auth_code, redirect_uri)
-    return HttpResponse("Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
+    return HttpResponse(
+        "Obtained new tokens successfully\n" if success else "Error obtaining new tokens, yet client info was saved")
+
+
+@csrf_exempt
+def joined_left_participant(request):
+    event: dict = json.loads(request.body)
+    record = {
+        "meeting_id": str(event["payload"]["object"]["id"]),
+        "email": ''.join(event["payload"]["object"]["participant"]["user_name"].split())
+    }
+    if event.get("event") == "meeting.participant_joined":
+        ZoomParticipants.objects.update_or_create(defaults=record)
+    elif event.get("event") == "meeting.participant_left":
+        ZoomParticipants.objects.filter(**record).delete()
+    return HttpResponse()
+
+
 # endregion
 
 
@@ -154,3 +173,16 @@ def export_to_csv(request, path):
     CsvService.export_from_db(IsPresent, path)
     return HttpResponse("200 OK")
 
+
+def show_stats_for_lesson(request, lesson_id):
+    data = {"present": Lesson.objects.get(id=lesson_id).statistics,
+            "total": len(Student.objects.filter(year_of_education=Lesson.objects.get(id=lesson_id).subject.year))}
+    return render(request, "main/Stats.html", context=data)
+
+
+def show_stats_for_student(request, email):
+    total = 0
+    for subject in Subject.objects.filter(year=Student.objects.get(email=email).year_of_education):
+        total += len(Lesson.objects.filter(subject=subject))
+    data = {"present": Student.objects.get(email=email).statistics, "total": total}
+    return render(request, "main/Stats.html", context=data)
