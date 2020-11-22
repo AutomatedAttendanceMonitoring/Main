@@ -154,11 +154,17 @@ def manual_check(request, lesson_id):
 
 
 def mark_student(request, link_parameter):
+    template = loader.get_template('main/attendance-marked.html')
+    success = False
     try:
         mark_student_attendance(f"http://127.0.0.1:8000/markattendance/{link_parameter}")
-        return HttpResponse("Succes, you can leave this page")
+        success = True
     except:
-        return HttpResponse("403 error")
+        pass
+    context = {
+        'success': success
+    }
+    return HttpResponse(template.render(context, request))
 
 
 def send_links(request, lesson_id):
