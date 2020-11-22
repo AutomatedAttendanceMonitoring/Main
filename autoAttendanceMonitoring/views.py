@@ -1,23 +1,21 @@
-from datetime import datetime
 import json
 import re
+from datetime import datetime
 
-from django.http import HttpResponse, HttpResponseBadRequest
 from django.core.exceptions import MultipleObjectsReturned
+from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import render, redirect
-
-from django.views.decorators.csrf import csrf_exempt
 from django.template import loader
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
-from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants, Lesson, Subject
-from utils import statistics
+from autoAttendanceMonitoring.models import Lesson, Subject
 from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
+from utils import statistics
 from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
-from utils.services.export_to_csv import CsvService
 from utils.link_sender import send_link_to
-from utils.Zoom import Zoom, ZoomError
+from utils.services.export_to_csv import CsvService
 
 
 def index(request):
