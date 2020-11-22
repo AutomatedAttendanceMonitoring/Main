@@ -92,8 +92,6 @@ def joined_left_participant(request):
     elif event.get("event") == "meeting.participant_left":
         ZoomParticipants.objects.filter(**record).delete()
     return HttpResponse()
-
-
 # endregion
 
 
@@ -165,7 +163,7 @@ def send_links(request, lesson_id):
         for entry in ZoomParticipants.objects.filter(meeting_id=request.GET['meeting']):
             student = Student.objects.get(email=entry.email)
             send_link_to(base_url, student, lesson_id)
-        return HttpResponseRedirect(f"/send_links/{lesson_id}")
+        return redirect(f"/send_links/{lesson_id}")
     except Exception:
         return HttpResponse("500 server error")
 
