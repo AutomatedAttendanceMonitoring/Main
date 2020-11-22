@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.core.exceptions import MultipleObjectsReturned
 from django.shortcuts import render, redirect
 from django.urls import reverse
+from django.contrib import auth
 import requests
 import re
 
@@ -77,7 +78,19 @@ def mark_read(request):
 
 
 def log_in(request):
-    return render(request, 'main/log-in.html')
+    template = loader.get_template('main/log-in.html')
+    if request.method == "POST":
+        print(request.POST)
+        username = request.POST['username']
+        password = request.POST['password']
+        user = auth.authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            auth.login(request, user)
+            # redirect to the page with list of all lessons
+            return HttpResponseRedirect("/")
+        else:
+            return HttpResponseRedirect("/account/invalid/")
+    return HttpResponse(template.render())
 
 
 def manual_check(request):

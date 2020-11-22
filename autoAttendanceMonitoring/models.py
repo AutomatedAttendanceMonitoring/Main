@@ -68,6 +68,11 @@ class Student(models.Model):
     FName = models.CharField(max_length=50)
     LName = models.CharField(max_length=50)
     year_of_education = models.ForeignKey(YearOfEducation, models.DO_NOTHING)
+    
+
+class Instructor(models.Model):
+    email = models.CharField(max_length=50, primary_key=True)
+    name = models.CharField(max_length=50)
 
 
 class Subject(models.Model):
@@ -86,7 +91,7 @@ class Lesson(models.Model):
 
 class IsTaughtBy(models.Model):
     subject = models.ForeignKey(Subject, models.DO_NOTHING)
-    instructor = models.ForeignKey(Lesson, models.DO_NOTHING)
+    instructor = models.ForeignKey(Instructor, models.DO_NOTHING)
 
 
 class IsPresent(models.Model):
