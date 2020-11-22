@@ -156,7 +156,7 @@ def manual_check(request, lesson_id):
 def mark_student(request, link_parameter):
     try:
         mark_student_attendance(f"{request.scheme}://{request.get_host()}/markattendance/{link_parameter}")
-        return HttpResponse("200 OK")
+        return HttpResponse("Succes, you can leave this page")
     except:
         return HttpResponse("403 error")
 
@@ -167,7 +167,7 @@ def send_links(request, lesson_id):
         for entry in ZoomParticipants.objects.filter(meeting_id=request.GET['meeting']):
             student = Student.objects.get(email=entry.email)
             send_link_to(base_url, student, lesson_id)
-        return HttpResponse("200 OK")
+        return HttpResponseRedirect(f"/send_links/{lesson_id}")
     except Exception:
         return HttpResponse("500 server error")
 
