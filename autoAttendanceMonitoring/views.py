@@ -8,6 +8,7 @@ from django.shortcuts import render, redirect
 from django.template import loader
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import auth
 
 from autoAttendanceMonitoring.models import Lesson, Subject
 from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
@@ -100,7 +101,19 @@ def mark_read(request):
 
 
 def log_in(request):
-    return render(request, 'main/log-in.html')
+    template = loader.get_template('main/log-in.html')
+    if request.method == "POST":
+        username = request.POST['username']
+        password = request.POST['password']
+        print(username, password)
+        user = auth.authenticate(username=username, password=password)
+        if user is not None and user.is_active:
+            auth.login(request, user)
+            # redirect to the page with list of all lessons
+            return HttpResponse("/")
+        else:
+            return HttpResponse(template.render())
+    return HttpResponse(template.render())
 
 
 def select_lesson(request):
