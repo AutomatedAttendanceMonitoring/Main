@@ -1,27 +1,23 @@
 from datetime import datetime
-
-from django.http import HttpResponse, HttpResponseRedirect
 import json
-
-from django.core.exceptions import MultipleObjectsReturned
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
-from django.urls import reverse
-import requests
 import re
 
-from .models import ZoomAuth, Lesson, Subject
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.core.exceptions import MultipleObjectsReturned
+from django.shortcuts import render, redirect
+
+from django.views.decorators.csrf import csrf_exempt
 from django.template import loader
 from django.urls import reverse
-from django.views.decorators.csrf import csrf_exempt
 
+from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants, Lesson, Subject
 from utils import statistics
 from autoAttendanceMonitoring.models import Student, IsPresent, ZoomAuth, ZoomParticipants
 from utils.Zoom import Zoom, ZoomError
 from utils.db_commands import mark_student_attendance
-from utils.link_sender import send_link_to
 from utils.services.export_to_csv import CsvService
-from .models import Lesson, Subject
+from utils.link_sender import send_link_to
+from utils.Zoom import Zoom, ZoomError
 
 
 def index(request):
@@ -31,8 +27,11 @@ def index(request):
         'lessons': lessons
     }
     if request.method == "POST":
-        # TODO get student emails -> send messages
-        return HttpResponseRedirect(f"/send_links/{request.POST['select-lesson']}")
+        parsed_link = re.search(r"/(?P<id>\d+)\?", request.POST['zoom-link'])
+        if parsed_link is None:
+            return HttpResponseBadRequest("<pre>Error: Zoom link is not valid.</pre>")
+        else:
+            return redirect(f"/send_links/{request.POST['select-lesson']}?meeting={parsed_link.group('id')}")
     return HttpResponse(template.render(context, request))
 
 
@@ -62,7 +61,7 @@ def set_credentials(request):
     client_id = request.GET.get("client_id")
     client_secret = request.GET.get("client_secret")
     if client_id is None or client_secret is None:
-        return HttpResponse("Error: client_id and client_secret are required\n")
+        return HttpResponseBadRequest("Error: client_id and client_secret are required\n")
     else:
         try:
             ZoomAuth.objects.update_or_create(defaults={
@@ -127,7 +126,7 @@ def select_lesson(request):
             statistics=0,
         )
         lesson.save()
-        return HttpResponseRedirect("/select-lesson")
+        return redirect("/select-lesson")
     return HttpResponse(template.render(context, request))
 
 
@@ -150,13 +149,13 @@ def manual_check(request, lesson_id):
             lesson_id=lesson_id
         )
         present.save()
-        return HttpResponseRedirect(f"/manual-check/{lesson_id}")
+        return redirect(f"/manual-check/{lesson_id}")
     return HttpResponse(template.render(context, request))
 
 
 def mark_student(request, link_parameter):
     try:
-        mark_student_attendance(f"http://127.0.0.1:8000/markattendance/{link_parameter}")
+        mark_student_attendance(f"{request.scheme}://{request.get_host()}/markattendance/{link_parameter}")
         return HttpResponse("200 OK")
     except:
         return HttpResponse("403 error")
@@ -164,9 +163,10 @@ def mark_student(request, link_parameter):
 
 def send_links(request, lesson_id):
     try:
-        students = Student.objects.all()
-        for student in students:
-            send_link_to(student, lesson_id)
+        base_url = f"{request.scheme}://{request.get_host()}/markattendance/"
+        for entry in ZoomParticipants.objects.filter(meeting_id=request.GET['meeting']):
+            student = Student.objects.get(email=entry.email)
+            send_link_to(base_url, student, lesson_id)
         return HttpResponse("200 OK")
     except Exception:
         return HttpResponse("500 server error")
